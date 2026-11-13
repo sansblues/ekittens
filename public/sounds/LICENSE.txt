@@ -1,0 +1,7 @@
+The card sounds here are made from Kenney's "Casino Audio" (1.1), by Kenney Vleugels (kenney.nl):
+https://kenney.nl/assets/casino-audio
+
+License: Creative Commons Zero (CC0), https://creativecommons.org/publicdomain/zero/1.0/
+Credit is not required; thank you, Kenney.
+
+They were trimmed, mixed to mono, warmed and levelled by scripts/sounds.mjs.

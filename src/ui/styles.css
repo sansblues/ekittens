@@ -1,0 +1,2102 @@
+@font-face {
+  font-family: 'Libron';
+  src: url('/fonts/Libron-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Libron';
+  src: url('/fonts/Libron-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: block;
+}
+
+/* Color, type, space and corners. What CSS shares with code (motion, the card's shape, sizes) is
+   written onto :root from design.ts's CssVars. */
+:root {
+  /* A dark table, the interface a step lighter, and the cards the only light things. */
+  --ink: #141413;
+  --paper: #faf9f5;
+  /* Near-black, the faintest warmth, at the paper's own hue: one family with the paper and the ink, and neutral
+     enough that every card keeps its colour. In oklch, as no 8-bit hex holds this hue at this lightness. */
+  --table: oklch(0.21 0.004 95);
+  /* Every neutral is one ladder: the paper mixed into the table, a share for each step up. */
+  --surface: color-mix(in oklab, var(--paper) 10%, var(--table)); /* the interface, raised */
+  --back: color-mix(in oklab, var(--paper) 20%, var(--table)); /* a card's back: off the table, and off a sheet */
+  --button: color-mix(in oklab, var(--paper) 20%, var(--table));
+  --button-hover: color-mix(in oklab, var(--paper) 28%, var(--table));
+  --stroke: color-mix(in oklab, var(--paper) 48%, var(--table)); /* an edge that must show: a field's rim, 3.3:1 on a sheet */
+  --gray: color-mix(in oklab, var(--paper) 52%, var(--table)); /* a card you can't play: its name still reads */
+  --faint: color-mix(in oklab, var(--paper) 60%, var(--table)); /* text a step under quiet: 4.8:1 on a sheet */
+  --quiet: color-mix(in oklab, var(--paper) 80%, var(--table)); /* 4.8:1 at worst, a note on a hovered button */
+  --button-primary-hover: color-mix(in oklab, var(--paper) 86%, var(--table));
+  /* Edges, in light: a resting edge, the top edge that catches it, and a strong one (a hover, a card's stock). */
+  --line: color-mix(in srgb, var(--paper) 12%, transparent);
+  --lit: color-mix(in srgb, var(--paper) 16%, transparent);
+  --line-strong: color-mix(in srgb, var(--paper) 24%, transparent);
+  /* Shade: a card's contact and drop shadows, a well's fill, a dimmed table, the lights out. */
+  --shade: 0 0 0;
+  --contact: rgb(var(--shade) / 0.12);
+  --drop: rgb(var(--shade) / 0.17);
+  --well: rgb(var(--shade) / 0.16);
+  --dim: rgb(var(--shade) / 0.5);
+  --dark: rgb(var(--shade));
+  /* Each card's color, sampled from its art; the avatars wear them too. */
+  --card-exploding-kitten: #c4513a;
+  --card-defuse: #4fa176;
+  --card-nope: #bf4b5c;
+  --card-attack: #dc8a48;
+  --card-skip: #6a9bcc;
+  --card-favor: #86a85a;
+  --card-shuffle: #a08a72;
+  --card-see-the-future: #cf7a9c;
+  --card-tacocat: #d6a843;
+  --card-cattermelon: #9c86cb;
+  --card-hairy-potato-cat: #a87a5b;
+  --card-beard-cat: #546e86;
+  --card-rainbow-ralphing-cat: #5ca9a2;
+  /* Tones take the hue of the card each is about, at one lightness (paper on them reads 5.4:1 and up);
+     mixed toward the dark surface they'd drain to brown. Red is the kitten's alone. */
+  --open: oklch(0.5 0.09 160); /* anyone can Nope: the Defuse's green */
+  --danger: oklch(0.5 0.11 55); /* it costs you: the Attack's orange */
+  --kitten: oklch(0.5 0.13 30);
+  --copied: color-mix(in oklab, var(--open) 45%, transparent); /* a link, lit as if selected */
+  --sun: #f2c54b;
+
+  /* One face, two weights (700 only where it leads: titles, the pill, buttons, card names, chips), five sizes
+     (--text-*, from design.ts), and a leading for each size: tighter as text grows. */
+  --leading-tight: 1.15;
+  --leading-snug: 1.25;
+  --leading: 1.4;
+  --tracking-tight: -0.02em; /* a title's letters, a touch closer as they grow */
+  --tracking-caps: 0.035em; /* capitals want air */
+  --chip: 1.7em; /* a chip's height, in its own text */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  --radius: 4px;
+  --control: 54px; /* a button's height, and a field's beside them */
+  --ring: var(--paper); /* keyboard focus, or where to act */
+  --ring-width: 2.5px;
+  --ring-gap: 3px;
+
+  /* The table's layers, back to front. Cards stack among themselves by design.ts's Depth. */
+  --z-under: 0;
+  --z-cards: 1;
+  --z-over: 2;
+  --z-spot: 3;
+  --z-voice: 4;
+  --z-drag: 5;
+  --z-tip: 6;
+  --z-corner: 7;
+  --z-scrim: 8;
+  --z-sheet: 9;
+
+  --grain: 0.55; /* the table's matte noise (body::before) */
+
+  color: var(--paper);
+  background: var(--table);
+  font-family: 'Libron', Georgia, serif;
+  font-size: var(--text-body);
+  line-height: var(--leading);
+  font-synthesis: none;
+  /* Libron's figures are tabular by default: prose gets its proportional ones, counts keep theirs. */
+  font-variant-numeric: proportional-nums;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html {
+  height: 100%; /* so the root's light covers the screen: the game itself lives in fixed layers */
+  overscroll-behavior: none; /* a pull at the edge never reloads the game */
+}
+
+body {
+  overflow: hidden;
+  user-select: none;
+  -webkit-touch-callout: none; /* a long press never opens a card's image menu */
+}
+
+/* Text selected (a name as it's typed, a link to copy by hand) is lit as a copied link is, not in the system's
+   own blue. */
+::selection {
+  background: var(--copied);
+}
+
+/* Fine gray noise, blended in, so the table looks matte without shifting its color. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'200'%20height%3D'200'%3E%3Cfilter%20id%3D'g'%3E%3CfeTurbulence%20type%3D'fractalNoise'%20baseFrequency%3D'0.8'%20numOctaves%3D'3'%20stitchTiles%3D'stitch'%2F%3E%3CfeColorMatrix%20type%3D'saturate'%20values%3D'0'%2F%3E%3CfeComponentTransfer%3E%3CfeFuncR%20type%3D'linear'%20slope%3D'3'%20intercept%3D'-1'%2F%3E%3CfeFuncG%20type%3D'linear'%20slope%3D'3'%20intercept%3D'-1'%2F%3E%3CfeFuncB%20type%3D'linear'%20slope%3D'3'%20intercept%3D'-1'%2F%3E%3C%2FfeComponentTransfer%3E%3C%2Ffilter%3E%3Crect%20width%3D'100%25'%20height%3D'100%25'%20filter%3D'url(%23g)'%2F%3E%3C%2Fsvg%3E");
+  mix-blend-mode: overlay;
+  opacity: var(--grain);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+  /* The press is a `scale`, apart from any `transform`: Motion writes its own there. */
+  transition:
+    scale var(--micro) var(--ease-out),
+    background-color var(--micro) ease,
+    color var(--micro) ease,
+    box-shadow var(--micro) ease;
+}
+
+button:active {
+  scale: var(--press);
+}
+
+.option:not(.square, [aria-disabled]):active,
+.invite:active {
+  scale: var(--press-wide);
+}
+
+/* A line of text, not a thing to press down. */
+.guide .rules button:active {
+  scale: none;
+}
+
+/* A card wears its ring on its side instead (.slotted .side). */
+button:focus-visible,
+.you .field:focus-visible {
+  outline: var(--ring-width) solid var(--ring);
+  outline-offset: var(--ring-gap);
+}
+
+h1,
+h2 {
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+/* The interface's raised surface: the table a step lighter, its hairline edge lit on top. Some below
+   keep the shape and edge with a fill of their own. */
+.sheet,
+.pill,
+.cardtip,
+.badge,
+.pill .turns,
+.byline .who[data-hit],
+.seats-row .mine .glide {
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow:
+    inset 0 1px 0 var(--lit),
+    inset 0 0 0 1px var(--line);
+}
+
+.badge,
+.pill .turns {
+  display: flex;
+  align-items: center;
+  height: var(--chip);
+  padding: 0 0.45em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.peek .pick:first-child .badge,
+.pill .turns {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  translate: calc(-1 * var(--overhang)) calc(-1 * var(--overhang));
+  min-width: 2.1em;
+  justify-content: center;
+  gap: 0.5em;
+  pointer-events: none;
+}
+
+/* Libron centers its × on lowercase letters: lifted to the digits' middle, a weight lighter. */
+.times {
+  position: relative;
+  top: -0.11em;
+  font-weight: 400;
+  margin-right: 0.04em;
+}
+
+/* A chip overhangs its card's corner by the same amount both ways, however wide. */
+.badge,
+.ask {
+  --overhang: 0.67em;
+}
+
+/* A triple's ask sits opposite its ×3: mirrored when it fits, else growing right, never into the ×3. */
+.ask {
+  position: absolute;
+  top: 0;
+  left: 2em; /* clear of the ×3, whose right edge sits at 1.43em */
+  right: calc(-1 * var(--overhang)); /* the ×3's overhang, mirrored */
+  z-index: 1;
+  display: flex;
+  justify-content: safe flex-end;
+  translate: 0 calc(-1 * var(--overhang));
+  pointer-events: none;
+}
+
+.ask .badge {
+  position: static;
+  translate: none;
+  display: block; /* not flex, which would drop the spaces around the card's name */
+  line-height: var(--chip);
+  white-space: nowrap;
+}
+
+.emblem {
+  border-radius: 16%; /* a share of its size, so every emblem has the same corner */
+}
+
+.named {
+  white-space: nowrap;
+}
+
+.named .emblem {
+  height: min(1em, 18px); /* tiny, even in a title */
+  margin: 0 min(0.32em, 6px) 0 min(0.1em, 2px);
+  vertical-align: -0.12em;
+}
+
+h2 .named .emblem {
+  vertical-align: 0.02em;
+}
+
+/* In a chip, an emblem holds tight to its count or word. */
+.badge .named .emblem {
+  margin: 0 0.15em 0 0;
+}
+
+/* Every sign: one stroke weight at any size; 20 px by default, a tag's 12, and in a line of text as tall as it. */
+.glyph {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75px; /* about the weight of the bold words beside it */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.glyph * {
+  vector-effect: non-scaling-stroke;
+}
+
+/* The front card hides the back one's lines. */
+.cards-icon {
+  width: 1.15em;
+  height: 1.15em;
+  fill: var(--table);
+}
+
+.arrow,
+.onward {
+  --mark: max(14px, calc(18px * var(--s)));
+  width: var(--mark);
+  height: var(--mark);
+  color: var(--quiet);
+}
+
+/* As tall as an icon, as wide as its drawing's own shape (40 by 24) allows; narrower where the seats sit close
+   (--room). */
+.onward {
+  width: min(var(--mark) * 5 / 3, var(--room));
+  height: auto;
+  aspect-ratio: 5 / 3;
+}
+
+/* Tiny corners that grow with the card, never under the interface's. */
+.card,
+.edges > div,
+.guide .pile > .edge,
+.zone,
+.logo img {
+  border-radius: max(var(--radius), calc(var(--w) * 0.045));
+}
+
+.card {
+  position: relative;
+  flex: none;
+  width: var(--w);
+  aspect-ratio: 1 / var(--ratio);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Lying on the table: in contact, and a drop shadow as deep as it's lifted. */
+.card,
+.logo img {
+  box-shadow:
+    var(--edge, 0 0 transparent),
+    0 1px 2px var(--contact),
+    0 calc(var(--lift, 2px) * 0.7) calc(var(--lift, 2px) * 2.6) var(--drop);
+}
+
+.card.face {
+  background: color-mix(in oklab, var(--c) 35%, var(--paper));
+}
+
+.card .index {
+  position: absolute;
+  top: 7%;
+  left: 8%;
+  right: 5%;
+  display: flex;
+  align-items: center;
+  gap: 0.34em;
+  font-size: max(var(--text-caption), calc(var(--w) * var(--name)));
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  white-space: nowrap;
+}
+
+.card .index .emblem {
+  flex: none;
+  width: 1.3em;
+}
+
+.card .art {
+  position: absolute;
+  left: 13%;
+  bottom: 12%;
+  width: 74%;
+}
+
+.card.mini .index span,
+.slotted[data-mini] .index span {
+  display: none;
+}
+
+/* Table cards are drawn at stage size, then scaled: --unscale keeps the name's floor to the eye. */
+.slotted:not([data-mini]) .card .index {
+  font-size: max(calc(var(--text-caption) * var(--unscale)), calc(var(--w) * var(--name)));
+}
+
+/* A solid card, as a face is: only its top edge catches the light. */
+.card.back {
+  --top: inset 0 1px 0 var(--lit);
+  --edge: var(--top);
+  background: var(--back);
+}
+
+.card.back .mark {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 46%;
+}
+
+.table {
+  --table-lead: var(--text-lead);
+  --table-body: var(--text-body);
+  --table-small: var(--text-small);
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* A small screen's table: its text a step down the scale, never a size between. */
+.table[data-compact] {
+  --table-lead: var(--text-body);
+  --table-body: var(--text-small);
+  --table-small: var(--text-caption);
+}
+
+/* One group a sheet can make inert, with no box of its own. */
+.board {
+  display: contents;
+}
+
+.layer,
+.overlay,
+.spotlight,
+.flush {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.overlay.under {
+  z-index: var(--z-under);
+}
+.layer {
+  z-index: var(--z-cards);
+}
+.overlay.over {
+  z-index: var(--z-over);
+}
+/* A spotlit card rises over the seats; the voice stays above it. */
+.table[data-spotlight] .layer {
+  z-index: var(--z-spot);
+}
+.overlay.voice {
+  z-index: var(--z-voice);
+}
+/* Heard, not seen. */
+.unseen {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* The card you're dragging rises over the voice too; only the tip and the corner stay above it. */
+.table[data-dragging] .layer {
+  z-index: var(--z-drag);
+}
+
+.spotlight {
+  background: var(--dim);
+}
+
+/* The lights go down under the cards: before .layer, at the same depth. */
+.flush {
+  z-index: var(--z-cards);
+  background: var(--dark);
+}
+
+/* Placed by transform alone. */
+.slotted {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: auto;
+  touch-action: none;
+  perspective: 1400px;
+}
+
+.slotted[data-grab] {
+  cursor: grab;
+}
+
+.slotted[data-grab]:active {
+  cursor: grabbing;
+}
+
+.slotted[data-open] {
+  cursor: pointer;
+}
+
+.slotted:focus {
+  outline: none;
+}
+
+.slotted .flip {
+  position: relative;
+  aspect-ratio: 1 / var(--ratio);
+  transform-style: preserve-3d; /* so no filter here: one would flatten the flip */
+}
+
+/* The ring (act here, or keyboard focus) on whichever side shows, the same to the eye at any scale. */
+.slotted .side {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  outline: calc(var(--ring-width) * var(--unscale)) solid transparent;
+  outline-offset: calc(var(--ring-gap) * var(--unscale));
+  transition:
+    background-color var(--fade) ease,
+    filter var(--fade) ease,
+    outline-color var(--micro) ease;
+}
+
+.slotted[data-act] .side,
+.slotted:focus-visible .side {
+  outline-color: var(--ring);
+}
+
+.slotted .rear {
+  transform: rotateY(180deg);
+}
+
+/* Reduced motion: a card doesn't turn over; its back, laid on its face, fades off it. */
+:is(.slotted, .guide) .flip[data-fade] > .side {
+  transform: none;
+  rotate: none;
+  backface-visibility: visible;
+}
+
+.flip[data-fade] > .back {
+  z-index: 1;
+  transition: opacity var(--fade) var(--ease-out);
+}
+
+.flip[data-fade][data-up] > .back {
+  opacity: 0;
+}
+
+/* Unplayable: gray and dark, all but the emblem, which still tells it apart in a crowded hand. */
+.slotted .front .art {
+  transition: filter var(--fade) ease;
+}
+.slotted[data-dim] .front {
+  background: var(--gray);
+}
+.slotted[data-dim] .front .art {
+  filter: grayscale(1) brightness(0.5) contrast(0.9);
+}
+
+/* A pile steps back into the shade but keeps its color: gray means "can't play". */
+.slotted[data-recede] .side,
+.edges[data-recede] > div {
+  filter: brightness(0.75);
+}
+
+.tremble[data-on] {
+  animation: tremble var(--suspense) linear both;
+}
+
+@keyframes tremble {
+  30% {
+    transform: none;
+  }
+  40% {
+    transform: translate(-0.6px, 0.4px) rotate(-0.3deg);
+  }
+  50% {
+    transform: translate(0.8px, -0.3px) rotate(0.3deg);
+  }
+  60% {
+    transform: translate(-1px, 0.5px) rotate(-0.4deg);
+  }
+  70% {
+    transform: translate(1.1px, -0.4px) rotate(0.45deg);
+  }
+  80% {
+    transform: translate(-1.3px, 0.4px) rotate(-0.5deg);
+  }
+  90% {
+    transform: translate(1.2px, -0.5px) rotate(0.5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tremble[data-on] {
+    animation: none;
+  }
+}
+
+.zone {
+  border: 2px dashed var(--stroke);
+  background: var(--line);
+  transition:
+    border-color var(--micro) ease,
+    background-color var(--micro) ease;
+}
+
+.zone[data-solid] {
+  border-style: solid;
+  border-color: var(--quiet);
+  background: var(--line-strong);
+}
+
+/* A place on the table, empty or to write in: an empty pile, a field, an empty seat. A shade darker than the
+   table, its edge a hairline that brightens under a pointer. */
+.well {
+  --rim: var(--line);
+  border: 0;
+  background: var(--well);
+  box-shadow: inset 0 0 0 1px var(--rim);
+}
+
+/* One you use (a field, the room's link, the + that seats a bot) is plainly there: its rim at 3:1. An empty seat
+   only holds the place, and stays faint. */
+:is(input, button).well {
+  --rim: var(--stroke);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  input.well:not(:focus):hover,
+  button.well:hover {
+    --rim: var(--faint);
+  }
+}
+
+/* A sign on a face's corner, as a badge sits on an icon: what a tap on the face does, or what it is. Ringed in
+   the table, so it reads as laid on top. */
+.tag {
+  position: absolute;
+  right: calc(-1 * var(--space-1));
+  bottom: calc(-1 * var(--space-1));
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  color: var(--paper);
+  background: var(--button);
+  box-shadow: 0 0 0 2px var(--table);
+  transition:
+    background-color var(--micro) ease,
+    opacity var(--micro) var(--ease-out);
+}
+
+.tag[data-at='top'] {
+  top: calc(-1 * var(--space-1));
+  bottom: auto;
+}
+
+.tag .glyph {
+  width: 12px;
+  height: 12px;
+  stroke-width: 1.5px; /* small, a line reads heavier: thinned to weigh the same as the 20 px signs */
+}
+
+/* Shown to a mouse resting on its face, or to a keyboard there; always to a finger, which has no hover. */
+@media (hover: hover) and (pointer: fine) {
+  .tag[data-reveal] {
+    opacity: 0;
+  }
+}
+
+/* A face with a tag wears its ring clear of the tag. */
+button:has(> .tag):focus-visible {
+  outline-offset: calc(var(--space-1) + var(--ring-gap));
+}
+
+button:focus-visible > .tag[data-reveal] {
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button:hover > .tag {
+    background: var(--button-hover);
+  }
+  button:hover > .tag[data-reveal] {
+    opacity: 1;
+  }
+}
+
+.edges > div {
+  transition: filter var(--fade) ease;
+  position: absolute;
+  translate: -50% -50%;
+  background: var(--back);
+  box-shadow: inset 0 -1px 0 var(--line-strong); /* like card stock, it parts a pile */
+}
+
+/* On one line wherever it stands: placed by its middle, it would wrap near the screen's side. Long names fade
+   rather than reach past the screen. */
+.byline {
+  max-width: calc(100vw - 2 * var(--gutter));
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+  font-size: var(--table-body);
+}
+
+.byline .who {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: background-color var(--micro) ease;
+}
+
+/* You, when the play costs you something: in the orange of the pill that says what. */
+.byline .who[data-hit] {
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1);
+  background: var(--danger);
+}
+
+.pill {
+  --time: var(--button-hover); /* untoned: a clear lighter step */
+  display: grid;
+  width: max-content;
+  max-width: calc(100vw - 2 * var(--gutter)); /* a longer line wraps, centered */
+  font-size: var(--table-lead);
+  font-weight: 700;
+  line-height: var(--leading-snug);
+  text-wrap: balance;
+  transition: background-color var(--micro) ease;
+}
+
+.pill > * {
+  grid-area: 1 / 1;
+}
+
+.pill[data-tone='open'] {
+  --time: var(--open);
+}
+.pill[data-tone='danger'] {
+  --time: var(--danger);
+}
+.pill[data-tone='kitten'] {
+  --time: var(--kitten);
+}
+/* Without a clock the tone fills the pill; in a Nope window the drain carries it, emptying to the surface. */
+.pill[data-tone]:not(:has(.clock)) {
+  background: var(--time);
+}
+
+/* The same height with or without your avatar (its sun fits inside). */
+.pill .line {
+  text-align: center;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-6) var(--space-2) var(--space-3);
+}
+
+.pill .line:not(:has(> .avatar)) {
+  padding-left: var(--space-6);
+}
+
+.clock {
+  overflow: hidden; /* rounds the fill's corners, and nothing else: the sun may spill over */
+  border-radius: inherit;
+}
+
+/* Its length is set where it runs: the Nope window or your move. */
+.drain {
+  height: 100%;
+  background: var(--time);
+  transform-origin: left;
+  animation: drain var(--window) linear both;
+  transition: background-color var(--micro) ease;
+}
+
+/* Your move's clock, along a sheet's top while the sheet hides the pill. */
+.sheet > .clock {
+  --time: var(--quiet);
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  border-radius: 0;
+}
+
+.time-left {
+  flex: none;
+  min-width: 4ch;
+  padding-inline: var(--space-1);
+  border-radius: var(--radius);
+  color: var(--paper);
+  font-size: var(--text-small);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.time-left[data-near] {
+  background: var(--danger);
+}
+
+.sheet > .time-left {
+  position: absolute;
+  top: calc(var(--sheet-pad) + var(--space-1));
+  right: var(--sheet-pad);
+}
+
+.sheet:has(> .time-left) [data-step] > .head {
+  padding-inline-end: calc(4ch + var(--space-4));
+}
+
+/* Someone else's last seconds, drawn down around their face: on its edge, above the sun, so it shows
+   whoever holds the turn. */
+.seat .ring {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 50%;
+  width: var(--avatar);
+  height: var(--avatar);
+  translate: -50% 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.seat .ring path {
+  --around: 1; /* the path's length, as it declares it */
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: var(--around);
+  animation: ring linear both;
+}
+
+@keyframes ring {
+  to {
+    stroke-dashoffset: var(--around);
+  }
+}
+
+@keyframes drain {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.pill .turns {
+  margin-left: calc(-1 * var(--space-1));
+  font-size: var(--table-small);
+}
+
+.avatar {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+}
+
+.avatar svg,
+.avatar .face {
+  width: 100%;
+  height: 100%;
+}
+
+/* The character, above the sun behind it. */
+.avatar .face {
+  position: relative;
+  transition:
+    filter var(--micro) ease,
+    opacity var(--micro) var(--ease-out);
+}
+
+/* Sized by inset rather than `scale`, which would also scale Motion's glide between players. */
+.avatar .burst {
+  position: absolute;
+  inset: calc(var(--rays) * -100%);
+  fill: var(--sun);
+}
+
+/* On the face, not the avatar: Motion writes the avatar's own opacity as it glides it between screens. */
+.avatar[data-out] .face {
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+
+.seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.seat .name {
+  max-width: var(--room, none);
+  font-size: var(--table-body);
+  /* Clear of the sun's rays on every seat, so it never moves when the turn comes. */
+  margin-top: calc(var(--avatar) * var(--rays));
+}
+
+.seat[data-out] .name {
+  color: var(--quiet);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+.seat .n {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--quiet);
+  font-size: var(--table-small);
+  font-variant-numeric: tabular-nums;
+  transition: opacity var(--fade) var(--ease-out);
+}
+
+.seat .n[data-hidden] {
+  opacity: 0;
+  transition-duration: var(--micro); /* what leaves goes quicker */
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-scrim);
+  background: var(--dim);
+}
+
+.sheet {
+  position: absolute;
+  left: 50%;
+  bottom: var(--gutter);
+  z-index: var(--z-sheet);
+  width: min(var(--sheet-width), calc(100vw - 2 * var(--gutter)));
+  max-height: calc(100dvh - 2 * var(--gutter));
+  overflow: auto;
+  padding: var(--sheet-pad);
+}
+
+.sheet:focus {
+  outline: none;
+}
+
+.sheet .head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.sheet .thumb {
+  --w: var(--card-sheet);
+  margin: -6px 0 -6px -4px;
+}
+
+@media (width < 480px), (height < 620px) {
+  .sheet .thumb {
+    --w: 72px;
+  }
+  .sheet .thumb .index span {
+    display: none;
+  }
+}
+
+.crowned {
+  display: flex;
+}
+
+.sheet h2 {
+  font-size: var(--text-title);
+}
+
+.sheet .sub {
+  margin-top: var(--space-1);
+  color: var(--quiet);
+  font-size: var(--text-small);
+}
+
+/* A name with no space to wrap at (twelve W's) breaks rather than reach past the sheet. */
+.sheet :is(h2, .sub),
+.log li {
+  overflow-wrap: anywhere;
+}
+
+/* A sheet's parts sit 24 apart (as its padding), two buttons 12. */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap; /* a pair too wide for a small phone stacks */
+  gap: var(--space-3);
+}
+
+.row .option {
+  flex: 1;
+  /* Two to a row: a step closer inside, so icon and words stay on one line on a phone. */
+  padding-inline: var(--space-3);
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.option {
+  --fill: var(--button);
+  width: 100%;
+  min-height: var(--control);
+  padding: 0 var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  background: var(--fill);
+  font-weight: 700;
+}
+
+.option.primary {
+  --fill: var(--paper);
+  color: var(--ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .option:not([aria-disabled]):hover {
+    --fill: var(--button-hover);
+  }
+  .option.primary:not([aria-disabled]):hover {
+    --fill: var(--button-primary-hover);
+  }
+}
+
+.option .num {
+  font-size: var(--text-title);
+  line-height: 1;
+}
+
+.option .note {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--quiet);
+  font-size: var(--text-small);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+/* On a button, the icon's front card hides the back one's lines in the button's fill. */
+.option .cards-icon {
+  fill: var(--fill);
+  transition: fill var(--micro) ease;
+}
+
+.picks {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.pick {
+  position: relative;
+}
+
+/* Every card, to name one: 4 to a row (3 when narrow, 6 when short), small enough for every row to fit beside
+   the rest of the sheet (--rest, measured, row gaps included), never under a finger's width (--least). */
+.names {
+  --cols: 4;
+  --rows: 3;
+  --rest: 328px;
+  flex-wrap: wrap;
+}
+
+@media (width < 480px) {
+  .names {
+    --cols: 3;
+    --rows: 4;
+    --rest: 307px;
+  }
+}
+
+.names .pick {
+  width: max(
+    var(--least, 64px),
+    min((100% - (var(--cols) - 1) * var(--space-3)) / var(--cols), (100dvh - var(--rest)) / var(--rows) / var(--ratio))
+  );
+  container-type: inline-size;
+}
+
+.names .card {
+  --w: 100cqw;
+}
+
+/* Too narrow for its name (NamedWidth, design.ts; a container query can't read a variable). */
+@container (width < 84px) {
+  .names .card .index span {
+    display: none;
+  }
+}
+
+/* A gentle arc, like your hand. */
+.peek {
+  padding-top: var(--space-4);
+}
+
+.peek .pick:nth-child(1) {
+  transform: translateY(4px) rotate(-4deg);
+}
+.peek .pick:nth-child(2) {
+  transform: translateY(-4px);
+}
+.peek .pick:nth-child(3) {
+  transform: translateY(4px) rotate(4deg);
+}
+
+.sheet .badge {
+  font-size: var(--text-small);
+}
+
+.badge.order {
+  left: 50%;
+  translate: -50% -78%;
+}
+
+.fan {
+  position: relative;
+  margin: 0 auto;
+}
+
+.fan-card {
+  position: absolute;
+  top: 0;
+  transform-origin: 50% 120%;
+}
+
+/* They rise as they lift, and keep the press. */
+button.pick,
+.fan-card {
+  transition:
+    scale var(--micro) var(--ease-out),
+    transform var(--micro) var(--ease-out);
+}
+
+/* After the rule above, so it wins: as on the table, what moves gets there at once. */
+@media (prefers-reduced-motion: reduce) {
+  button.pick,
+  .fan-card {
+    transition-property: scale;
+  }
+}
+
+/* Face down, overlapping, one card's back would run into the next: its edge parts them, as the deck's do. */
+.fan-card + .fan-card .card.back {
+  --edge: var(--top), inset 1px 0 0 var(--line-strong);
+}
+
+/* About 8 lines tall, scrolling inside. */
+.log {
+  list-style: none;
+  max-height: min(340px, 45dvh);
+  overflow-y: auto;
+  margin-top: calc(-1 * var(--space-2)); /* its first line's padding: the text keeps the sheet's 24 */
+  /* "More below": the bottom fades over its padding, so a list that fits never fades. */
+  padding: 0 0 var(--space-6);
+  mask-image: linear-gradient(black calc(100% - var(--space-6)), transparent);
+}
+
+.log li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.log .none {
+  color: var(--quiet);
+}
+
+.place-label {
+  margin-bottom: var(--space-4);
+  text-align: center;
+  font-size: var(--text-lead);
+  font-weight: 700;
+  line-height: var(--leading-snug);
+}
+
+/* The deck is the bar (its top on the left), the kitten the knob. A finger's 44 px tall, the bar 12 in its
+   middle: its margins give back the room around the bar, so it sits as if 12 tall. */
+.deck-slider {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin: calc(-1 * var(--space-4)) 0 calc(var(--space-6) - var(--space-4));
+  background: none;
+  cursor: pointer;
+}
+
+/* A rule each: a browser drops a whole rule over a pseudo-element it doesn't know. */
+.deck-slider::-webkit-slider-runnable-track {
+  height: 12px;
+  border-radius: var(--radius);
+  background: var(--button);
+}
+
+.deck-slider::-moz-range-track {
+  height: 12px;
+  border-radius: var(--radius);
+  background: var(--button);
+}
+
+.deck-slider:focus-visible {
+  outline: none;
+}
+
+.deck-slider:focus-visible::-webkit-slider-runnable-track {
+  outline: var(--ring-width) solid var(--ring);
+  outline-offset: var(--ring-gap);
+}
+
+.deck-slider:focus-visible::-moz-range-track {
+  outline: var(--ring-width) solid var(--ring);
+  outline-offset: var(--ring-gap);
+}
+
+.deck-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 32px;
+  height: 32px;
+  margin-top: -10px; /* on the bar's middle: (12 - 32) / 2 */
+  border-radius: var(--radius);
+  background: url('/cards/exploding-kitten.png') center / cover var(--card-exploding-kitten);
+}
+
+.deck-slider::-moz-range-thumb {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius);
+  background: url('/cards/exploding-kitten.png') center / cover var(--card-exploding-kitten);
+}
+
+.tip {
+  position: absolute;
+  z-index: var(--z-tip);
+  /* Above its card, unless that would cut its top off (a phone on its side): then over the card,
+     16 px from the top. A tip that sets no --y always fits. */
+  translate: -50% max(-100%, calc(var(--space-4) - var(--y, 100vh)));
+  pointer-events: none;
+  animation: tip var(--micro) var(--ease-out) both;
+}
+
+.tip.float {
+  position: fixed;
+}
+
+.tip[data-instant] {
+  animation: none;
+}
+
+@keyframes tip {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-1));
+  }
+}
+/* After the one above, so it wins: with reduced motion, a tip only fades in. */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes tip {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+.cardtip {
+  width: var(--tip-width);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-small);
+}
+
+.cardtip .head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.cardtip .head .emblem {
+  width: 22px;
+}
+
+.cardtip .why {
+  margin-top: var(--space-3);
+  color: var(--quiet);
+}
+
+.corner {
+  position: absolute;
+  top: var(--gutter);
+  left: var(--gutter);
+  z-index: var(--z-corner);
+  display: flex;
+}
+
+.icon-button {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: var(--quiet);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .icon-button:hover {
+    color: var(--paper);
+  }
+}
+
+/* 36 px to the eye (a seat 40 at least), 44 px to a finger. */
+@media (pointer: coarse) {
+  .icon-button::after,
+  .seats-row button::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+  }
+}
+
+/* Home, a friend's link and a room's lobby: each centered on the table by itself. */
+.home {
+  --column: 336px; /* the block you act in: the name, you, the ways in */
+  --logo-em: 9.29; /* the logo's inked width in its own em: the icon, the gap, "EXPLODING" at its tracking */
+  --logo: calc(var(--column) / var(--logo-em)); /* the name's capitals, so the logo is exactly the block's width */
+  --face: var(--face-seat);
+  --seat: var(--face-seat);
+  /* The first row, yours or the table's, alike on every screen, so their rows line up: a seat's face over
+     its name. */
+  --first: calc(var(--seat) + var(--space-1) + var(--text-caption) * var(--leading));
+  --gap: var(--space-12);
+  position: fixed;
+  inset: 0;
+  overflow: auto;
+  padding: var(--space-12) var(--space-4) calc(2 * var(--space-6));
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center; /* each screen balanced on the table; taller than it, from the top */
+  align-items: center;
+  gap: var(--gap);
+}
+
+/* One block, as on a game's box: the icon, and beside it the name in two lines of capitals as tall as it. */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  /* At most as wide as the screen within its gutters. */
+  font-size: min(var(--logo), (100vw - 2 * var(--gutter)) / var(--logo-em));
+  line-height: 1;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.logo > span > span {
+  display: block;
+}
+
+/* Printed on a card's stock, lying on the table: the cards' corner, and their shadow. Sized before it loads, so
+   the name never jumps aside. */
+.logo .cat {
+  --w: 2.1em;
+  --lift: 8px;
+  position: relative;
+  flex: none;
+  width: var(--w);
+  height: var(--w);
+}
+
+.logo img {
+  width: 100%;
+  height: 100%;
+}
+
+/* The cat's eyes, over the drawing's: a pupil that watches your pointer, and a lid that blinks. */
+.logo .eye {
+  position: absolute;
+  display: grid;
+  place-items: center;
+}
+
+.logo .pupil {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.logo .lid {
+  position: absolute;
+  inset: -12%; /* past the eye's edge, so none of its white shows round a closed lid */
+  border-radius: 50%;
+  background: var(--ink);
+  transform-origin: top;
+  scale: 1 0;
+  transition: scale var(--blink) var(--ease-out);
+}
+
+.logo .lid[data-shut] {
+  scale: 1 1;
+}
+
+/* The first time it shows, the page settles in, once its pictures are in: the name, what it asks, then how
+   to play, one after another. */
+.home[data-enter='wait'] :is(.logo, .setup, .how) {
+  opacity: 0;
+}
+
+.home[data-enter='go'] :is(.logo, .setup, .how) {
+  animation: enter var(--enter) var(--ease-out) both;
+}
+
+.home[data-enter='go'] .setup {
+  animation-delay: var(--step);
+}
+
+.home[data-enter='go'] .how {
+  animation-delay: calc(2 * var(--step));
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
+/* After the one above, so it wins: with reduced motion, it only fades in. */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes enter {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+/* The block you act in, and how to play: one over the other, lying on the table as the game's piles do,
+   the space between them enough. */
+.panel {
+  width: min(100%, var(--column));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--gap);
+}
+
+.lead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.lead .setup {
+  align-self: stretch;
+}
+
+/* Its cards as big as the screen's height allows, the page still in view, and never more than a sheet's: it
+   follows the way in, it doesn't lead. */
+.how {
+  --scene: 0.8;
+  display: grid;
+  justify-items: start;
+}
+
+/* In one column: centered under the buttons, the scene and the rules (their lines still flush with each other). */
+@media (width < 960px) and (height >= 560px) {
+  .how,
+  .how .guide {
+    justify-items: center;
+  }
+}
+
+/* In one column, tall: its cards as big as beside the way in, as the game's sheets show them; and set apart
+   from the buttons a step more than from its own rules (the room under its cards is the Defuse's). */
+@media (width < 960px) and (height >= 740px) {
+  .how {
+    --scene: 1;
+    margin-top: var(--space-6);
+  }
+}
+
+/* Beside how to play, both are centered on each other too: how to play, the same on every screen,
+   keeps its place from home to a friend's link to the lobby, and each screen's block is balanced against it. */
+@media (width >= 960px) and (height >= 560px), (orientation: landscape) and (height < 560px) {
+  .panel {
+    align-items: center;
+  }
+}
+
+/* Wide: the block on the left, and beside it how to play. */
+@media (width >= 960px) and (height >= 560px) {
+  .panel {
+    width: auto;
+    grid-template-columns: var(--column) auto;
+    column-gap: calc(5 * var(--space-6));
+  }
+  .lead {
+    align-items: stretch;
+  }
+  .how {
+    --scene: 1;
+  }
+}
+
+.setup {
+  --apart: var(--space-6); /* the table's row from what's under it */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--apart);
+}
+
+.you {
+  min-height: var(--first);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.me {
+  position: relative;
+  flex: none;
+  display: grid;
+  border-radius: var(--radius);
+}
+
+/* Plainly a field, the rest of the row wide, so typing never moves a thing; as tall as the buttons under
+   it; at 17 px, so a phone doesn't zoom in on it. */
+.you .field {
+  flex: 1;
+  min-width: 0;
+  height: var(--control);
+  padding: 0 var(--space-4);
+  font: inherit;
+  color: var(--paper);
+  border-radius: var(--radius);
+  transition: box-shadow var(--micro) ease;
+}
+
+.you .field::placeholder {
+  color: var(--quiet);
+  opacity: 1;
+}
+
+/* A room's seats, as they'll sit: you, marked so; friends; bots, badged; empty seats. Five just fill the
+   column. */
+.seats-row {
+  min-height: var(--first);
+  display: flex;
+  justify-content: space-between; /* the faces spread across, so each name has a seat's room and its gaps */
+  align-items: flex-start;
+  padding: 0;
+  list-style: none;
+  container-type: inline-size;
+}
+
+.seats-row li {
+  width: var(--seat);
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+}
+
+.seats-row .name {
+  color: var(--quiet);
+  font-size: var(--text-caption); /* the smallest text, as a caption */
+}
+
+/* As wide as a seat's share of the row, a hair clear of the next. */
+.seats-row .fit {
+  max-width: calc((100cqw - var(--seat)) / 4 - var(--space-1));
+}
+
+/* What the + does, named as a seat is; whole, past its seat if it must, into the empty seats after it. */
+.seats-row .add {
+  white-space: nowrap;
+}
+
+/* Yours, lit among the quiet ones. */
+.seats-row .mine .name {
+  color: var(--paper);
+}
+
+.seats-row .bot {
+  position: relative;
+  display: grid;
+  border-radius: var(--radius);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .seats-row button.empty:hover {
+    color: var(--paper);
+  }
+}
+
+.seats-row .empty {
+  position: relative;
+  width: var(--seat);
+  height: var(--seat);
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  color: var(--quiet);
+}
+
+.actions {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  gap: var(--space-3);
+}
+
+/* The face's own box, so Motion can carry it to its seat. */
+.glide {
+  display: grid;
+  flex: none;
+}
+
+/* Your seat among the others: your face on a frame of raised paper, your place at the table. It reaches past
+   the face, so nothing beside it moves. */
+.seats-row .mine .glide {
+  padding: var(--space-1);
+  margin: calc(-1 * var(--space-1));
+}
+
+/* A room's link, written in like a field, and the button in it that shares it, or copies it and says so. */
+.invite {
+  width: 100%;
+  min-height: var(--control);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+}
+
+/* Sharing failed: the same box, its rim as plain as a field's; the link in it to copy by hand, and where the
+   button was, quietly, what to do. */
+.invite[data-failed] {
+  --rim: var(--stroke);
+}
+
+.invite[data-failed]:has(:focus-visible) {
+  outline: var(--ring-width) solid var(--ring);
+  outline-offset: var(--ring-gap);
+}
+
+.invite input.url {
+  flex: 1;
+  height: 100%;
+  color: inherit;
+  font: inherit;
+  background: none;
+  border: 0;
+  outline: none;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+.invite[data-failed] .act {
+  --fill: transparent;
+  min-width: 0;
+  padding-inline: var(--space-2);
+  color: var(--quiet);
+  font-weight: 400;
+}
+
+.invite .url {
+  display: flex;
+  min-width: 0;
+  margin: 0 auto 0 calc(-1 * var(--space-1));
+  padding: 0 var(--space-1);
+  border-radius: var(--radius);
+  white-space: nowrap;
+  transition: background-color var(--micro) ease;
+}
+
+/* The site's address gives way to the room's code, which always shows whole. */
+.invite .host {
+  color: var(--quiet);
+}
+
+/* One line that, cut, fades out at its end. */
+.fit {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.fit[data-cut] {
+  mask-image: linear-gradient(to left, transparent, black 1.5em);
+}
+
+.invite .act {
+  --fill: var(--button);
+  flex: none;
+  min-width: 108px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  background: var(--fill);
+  font-weight: 700;
+  transition: background-color var(--micro) ease;
+}
+
+.invite .act > div {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Copied: the button and the field's rim in the Defuse's green, the link lit as if selected. */
+.invite.well[data-copied] {
+  --rim: var(--open);
+}
+
+.invite[data-copied] .act {
+  --fill: var(--open);
+}
+
+.invite[data-copied] .url {
+  background: var(--copied);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .invite:hover:not([data-copied], [data-failed]) .act {
+    --fill: var(--button-hover);
+  }
+}
+
+/* A phone: everything a step closer. */
+@media (width < 480px) {
+  .home {
+    --gap: var(--space-8);
+    padding-block: var(--space-8);
+  }
+}
+
+/* The narrowest phones: the seats a size down, so five keep their gaps and a pair of buttons stays on one
+   line. */
+@media (width < 360px) {
+  .home {
+    --seat: var(--face-option);
+  }
+}
+
+/* A short screen, as a laptop's: closer to its edges. */
+@media (height < 740px) {
+  .home {
+    padding-block: var(--space-6);
+  }
+}
+
+/* Shorter still, in one column on a phone: everything a step closer, so the way in is always in view. */
+@media (height < 740px) and (width < 960px), (height < 620px) {
+  .home {
+    --gap: var(--space-6);
+    padding-block: var(--space-4);
+  }
+  .setup {
+    --apart: var(--space-4);
+  }
+  .how {
+    --scene: 0.625;
+  }
+  .how .guide {
+    gap: var(--space-4);
+  }
+}
+
+/* A phone on its side: the two halves side by side, narrower and closer. */
+@media (orientation: landscape) and (height < 560px) {
+  /* Two rows of six, the played card's picture left out of the title: the cards to name fit whole. */
+  .names {
+    --cols: 6;
+    --rows: 2;
+    --rest: 252px;
+    --least: 44px;
+  }
+  .sheet:has(.names) .thumb {
+    display: none;
+  }
+  /* The menu in pairs, a room's link over them and Back under them: the sheet holds it whole. */
+  .options.menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .menu > :is(.invite, .invite-fallback, .primary) {
+    grid-column: 1 / -1;
+  }
+  /* The rules beside their scene, not under it: the sheet holds them whole. */
+  .sheet .guide {
+    grid-auto-flow: column;
+    align-items: center;
+    column-gap: var(--space-8);
+  }
+  .home {
+    --column: 256px;
+    --face: var(--face-option);
+    --seat: var(--face-option);
+    --gap: var(--space-6);
+    padding-block: var(--space-2);
+  }
+  .panel {
+    width: auto;
+    grid-template-columns: var(--column) auto; /* how to play as wide as its longest line */
+    column-gap: var(--space-12);
+  }
+  .how {
+    --scene: 0.625;
+  }
+  .setup {
+    --apart: var(--space-3);
+  }
+}
+
+/* How to play: a game in progress, and under it the rules, the line it plays lit. Both start at one edge. */
+.guide {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-6);
+}
+
+/* The scene, its cards --w wide as guide.tsx draws them, shown at --scene (.how sets it by the room there is;
+   60 px in the menu's sheet). A swipe on it steps, a scroll still scrolls. */
+.guide .step {
+  --w: var(--card-sheet);
+  zoom: var(--scene, 0.625);
+  display: grid;
+  touch-action: pan-y;
+}
+
+/* The piles under every scene: the deck, and the discard pile beyond the stage. */
+.guide .felt {
+  grid-area: 1 / 1;
+  position: relative;
+}
+
+.guide .felt > span {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  display: grid;
+}
+
+/* The scene: from the deck to the discard pile; a card's height, and below it room for a Defuse slapped on
+   (guide.tsx's Slap). The one leaving and the one arriving share its place. */
+.guide .stage {
+  grid-area: 1 / 1;
+  position: relative;
+  width: calc(var(--w) * 2.44);
+  height: calc(var(--w) * (var(--ratio) + 0.29) + 8px);
+  perspective: 600px;
+}
+
+.guide .stage > span {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  display: grid;
+}
+
+/* The deck: its top card over its edges, as on the table. */
+.guide .pile > * {
+  grid-area: 1 / 1;
+}
+
+.guide .pile > .edge {
+  width: var(--w);
+  aspect-ratio: 1 / var(--ratio);
+  background: var(--back);
+  box-shadow: inset 0 -1px 0 var(--line-strong); /* like card stock, it parts a pile */
+}
+
+/* A card turned over: its back, and on the other side its face. */
+.guide .flip {
+  display: grid;
+  transform-style: preserve-3d;
+}
+
+.guide .side {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+}
+
+.guide .side.front {
+  rotate: y 180deg;
+}
+
+/* Three faces, the sun's rays clear of those beside it. */
+.guide .stage > .faces {
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+/* The rules: quiet, but for the one playing. Each line plays its scene. */
+.guide .rules {
+  display: grid;
+  padding: 0;
+  list-style: none;
+}
+
+.guide .rules button {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding-block: var(--space-1);
+  /* A step quieter than quiet, so the lit line stands out (--faint). */
+  color: var(--faint);
+  text-align: left;
+}
+
+.guide .rules [aria-current] {
+  color: var(--paper);
+}
+
+/* A line too long for a narrow sheet breaks into two even halves, under its words, not its number. */
+.guide .rules button > :last-child {
+  text-wrap: balance;
+}
+
+.guide .rules .n {
+  width: 1ch;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .guide .rules button:hover {
+    color: var(--paper);
+  }
+}
+
+/* In the menu's sheet, the air a sheet's head has above its button. */
+.sheet .guide {
+  margin: 0 auto var(--space-6);
+}
+
+/* Not yet: dimmed and still, though a press still reaches it, so it can say why. Its words still read, at 5:1. */
+.option[aria-disabled] {
+  opacity: 0.5;
+  cursor: default;
+  scale: 1;
+}
+
+/* On a friend's link: you, close over the way in, as one group under the table's seats, your face at their size. */
+.joining .you {
+  --face: var(--seat);
+  min-height: 0;
+}
+
+/* Its sign alone, a square as tall as the buttons. */
+.row .option.square {
+  flex: none;
+  width: var(--control);
+  padding: 0;
+}
+
+/* Play, the rest of the row: its tip shows under it. */
+.play {
+  position: relative;
+  flex: 1;
+  display: grid;
+}
+
+/* Under Play, clear of the link above it: what to do. */
+.tip.why {
+  top: calc(100% + var(--space-2));
+  left: 50%;
+  translate: -50% 0;
+}
+
+.tip.why .cardtip {
+  width: max-content;
+}
+
+/* With everything a step closer (a short screen, a phone on its side), there's no room under it: over Play, as a
+   card's tip goes over its card with none above, and no wider. */
+@media (height < 740px) and (width < 960px), (height < 620px) {
+  .tip.why {
+    inset: 50% 0 auto;
+    translate: 0 -50%;
+  }
+  .tip.why .cardtip {
+    width: auto;
+    text-align: center;
+    text-wrap: balance;
+  }
+}
+
+/* Watching, where your hand would be. */
+.aside {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--space-6);
+  text-align: center;
+  color: var(--quiet);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button.pick:hover {
+    transform: translateY(calc(-1 * var(--space-1)));
+  }
+}
+
+/* What can't be helped (failed.tsx), on the game's sheet: over the page, which doesn't move under it; or, with
+   nothing that can be drawn behind it, alone in the middle. */
+.scrim.told,
+.sheet.told {
+  position: fixed;
+}
+
+.sheet.told {
+  translate: -50% 0;
+}
+
+.told.alone {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--gutter);
+}
+
+.told.alone .sheet {
+  position: static;
+  translate: none;
+}
+
+/* More contrast, asked for: the faintest words and the rims step up to quiet, hairlines to strong, and the grain
+   goes. */
+@media (prefers-contrast: more) {
+  :root {
+    --faint: var(--quiet);
+    --stroke: var(--quiet);
+    --line: var(--line-strong);
+    --lit: var(--line-strong);
+    --grain: 0;
+  }
+}
+
+/* High contrast (Windows), where the system picks every color and drops every shadow, and each edge here is one.
+   The pictures keep their own colors (a card its shadow, too), and its ring takes the system's; the interface's
+   surfaces get a real edge, in the system's colors. */
+@media (forced-colors: active) {
+  :root {
+    --ring: CanvasText;
+  }
+  .card,
+  .edges > div,
+  .guide .pile > .edge,
+  .emblem,
+  .avatar,
+  .logo .cat,
+  .drain,
+  .deck-slider {
+    forced-color-adjust: none;
+  }
+  .sheet,
+  .sheet:focus,
+  .pill,
+  .cardtip,
+  .badge,
+  .pill .turns,
+  .byline .who[data-hit],
+  .seats-row .mine .glide,
+  .option,
+  .well,
+  .tag,
+  .invite .act {
+    outline: 1px solid;
+    outline-offset: -1px;
+  }
+}

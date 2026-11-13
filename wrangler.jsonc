@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "ekittens",
+  "main": "./src/server.ts",
+  "compatibility_date": "2026-11-06",
+  // The app is one page: any path is a room's link. The rooms answer under /api.
+  "assets": { "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
+  // Its address: Cloudflare points the domain at the Worker and keeps its certificate.
+  "routes": [{ "pattern": "ekittens.app", "custom_domain": true }],
+  // Only there: a room's link is the same for everyone, and a saved game is found where it was left.
+  "workers_dev": false,
+  "preview_urls": false,
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "RoomServer" }],
+    "code_update_strategy": { "mode": "immediate" },
+  },
+  "exports": { "RoomServer": { "type": "durable-object", "storage": "sqlite" } },
+  "observability": { "enabled": true },
+}

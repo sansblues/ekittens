@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <title>Ekittens sounds</title>
+    <!-- Every sound in the game, to listen to: npm run dev, then /sounds.html. -->
+    <style>
+      body {
+        overflow: auto;
+      }
+      main {
+        display: grid;
+        gap: var(--space-3);
+        width: min(560px, 100%);
+        margin: 48px auto;
+        padding: var(--space-4);
+      }
+      main p {
+        margin-bottom: var(--space-3);
+        color: var(--quiet);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Sounds</h1>
+      <p>A card sliding from a bot's seat sounds off to its side, softer and duller.</p>
+    </main>
+    <script type="module">
+      import '/src/ui/styles.css'
+      import { CssVars } from '/src/ui/design.ts'
+      import { Sounds, sfx } from '/src/ui/sound.ts'
+      // As main.tsx does: the styles read these.
+      for (const [name, value] of Object.entries(CssVars)) document.documentElement.style.setProperty(name, value)
+      const main = document.querySelector('main')
+      // Only a slide ever plays from a seat (playEvent, sound.ts).
+      const seats = [
+        ['left seat', { pan: -0.5, far: true }],
+        ['right seat', { pan: 0.5, far: true }],
+      ]
+      for (const s of Sounds) {
+        const row = document.createElement('div')
+        row.className = 'row'
+        for (const [label, where] of [[s, {}], ...(s === 'slide' ? seats : [])]) {
+          const b = document.createElement('button')
+          b.className = label === s ? 'option primary' : 'option'
+          b.textContent = label
+          b.onclick = () => sfx(s, 0, where)
+          row.append(b)
+        }
+        main.append(row)
+      }
+    </script>
+  </body>
+</html>

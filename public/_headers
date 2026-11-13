@@ -1,0 +1,19 @@
+# For the files Cloudflare serves as they are; never for the Worker's own answers (/api).
+
+# Vite's, named by their contents.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Ours, under names that stay as they change: kept a day.
+/cards/*
+  Cache-Control: public, max-age=86400
+/sounds/*
+  Cache-Control: public, max-age=86400
+/avatars/*
+  Cache-Control: public, max-age=86400
+/fonts/*
+  Cache-Control: public, max-age=86400
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
